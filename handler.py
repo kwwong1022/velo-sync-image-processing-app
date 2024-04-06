@@ -5,7 +5,7 @@ import gpxpy.gpx
 import cv2 as cv
 import xml.etree.ElementTree as ET
 from src.util.Canvas import Canvas
-from src.constant.constant import S3_STORAGE_BUCKET, SUFFIX_MP4
+from src.constant.constant import S3_STORAGE_BUCKET, SUFFIX_MP4, PROGRESS_UPDATE_RATE
 from src.lib.common import get_video_process, get_s3_file, put_s3_file
 from src.lib.metric import get_gpx_metric
 from src.lib.style import get_display_items
@@ -33,7 +33,7 @@ def app(event, context):
     # Prepare style & data
     style_str = style_bytes.decode('utf-8')
     style_element = ET.fromstring(style_str)
-    vid_offset = style_element.find('vidconf').find('offset').text
+    vid_offset = int(style_element.find('vidconf').find('offset').text)
     display_items = get_display_items(style_element)
     gpx_metric = get_gpx_metric(gpx_bytes)
 
@@ -53,10 +53,12 @@ def app(event, context):
 
         if ret:
             canvas.draw(frame, frame_count)
-
             output_video.write(frame)
             frame_count += 1
-            print(f"Progress: {int(frame_count/frame_total*100)}%")
+
+            if frame_count%PROGRESS_UPDATE_RATE == 0:
+                progress = int(frame_count/frame_total*100)
+                print(f"Progress: {progress}%")
         
         else:
             break
@@ -66,6 +68,7 @@ def app(event, context):
 
     # Upload output video to s3
     put_s3_file(temp_video_file.name, S3_STORAGE_BUCKET, '71c2b411-5ad7-4e24-9fc9-469d8c1d7f97/c7e6d89d-c0f5-4e35-a472-ac44d3bcbb8b.mp4')
+    # Update process status
     temp_video_file.close()
 
     # Health check result

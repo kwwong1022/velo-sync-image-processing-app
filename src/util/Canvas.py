@@ -13,7 +13,7 @@ class Canvas:
     def draw(self, frame, frame_count):
         for item in self.display_items:
             metric = item["metric"]
-            frame_in_sec = math.floor(frame_count/self.vid_fps)
+            frame_in_sec = math.floor(frame_count/self.vid_fps) - self.vid_offset
             
             if metric == METRIC_TYPE["POWER"]:
                 self.draw_power(item, frame, frame_in_sec)
@@ -38,9 +38,10 @@ class Canvas:
         theme = item["theme"]
         posx = item["posx"]
         posy = item["posy"]
+        power = self.gpx_metric[frame_in_sec]['power'] if self.is_metric_range_valid(frame_in_sec) else 0
 
         if theme == 0:
-            cv.putText(frame, f"Power: {self.gpx_metric[frame_in_sec]['power']}", (posx, posy), 
+            cv.putText(frame, f"Power: {power}", (posx, posy), 
                        cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv.LINE_4)
 
 
@@ -48,9 +49,10 @@ class Canvas:
         theme = item["theme"]
         posx = item["posx"]
         posy = item["posy"]
+        heartrate = self.gpx_metric[frame_in_sec]['hr'] if self.is_metric_range_valid(frame_in_sec) else 0
 
         if theme == 0:
-            cv.putText(frame, f"BPM: {self.gpx_metric[frame_in_sec]['hr']}", (posx, posy), 
+            cv.putText(frame, f"BPM: {heartrate}", (posx, posy), 
                        cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv.LINE_4)
             
 
@@ -58,9 +60,10 @@ class Canvas:
         theme = item["theme"]
         posx = item["posx"]
         posy = item["posy"]
+        cadence = self.gpx_metric[frame_in_sec]['cad'] if self.is_metric_range_valid(frame_in_sec) else 0
 
         if theme == 0:
-            cv.putText(frame, f"RPM: {self.gpx_metric[frame_in_sec]['cad']}", (posx, posy), 
+            cv.putText(frame, f"RPM: {cadence}", (posx, posy), 
                        cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv.LINE_4)
             
     
@@ -68,9 +71,10 @@ class Canvas:
         theme = item["theme"]
         posx = item["posx"]
         posy = item["posy"]
+        speed = "N/A"
 
         if theme == 0:
-            cv.putText(frame, f"Speed: N/A", (posx, posy), 
+            cv.putText(frame, f"Speed: {speed}", (posx, posy), 
                        cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv.LINE_4)
             
 
@@ -79,9 +83,10 @@ class Canvas:
         theme = item["theme"]
         posx = item["posx"]
         posy = item["posy"]
+        distance = "N/A"
 
         if theme == 0:
-            cv.putText(frame, f"KM: N/A", (posx, posy), 
+            cv.putText(frame, f"KM: {distance}", (posx, posy), 
                        cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv.LINE_4)
             
 
@@ -89,7 +94,12 @@ class Canvas:
         theme = item["theme"]
         posx = item["posx"]
         posy = item["posy"]
+        gradient = "N/A"
 
         if theme == 0:
-            cv.putText(frame, f"M Climb: N/A", (posx, posy), 
+            cv.putText(frame, f"M Climb: {gradient}", (posx, posy), 
                        cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv.LINE_4)
+            
+
+    def is_metric_range_valid(self, frame_in_sec):
+        return frame_in_sec >= 0 and frame_in_sec <= len(self.gpx_metric) - 1

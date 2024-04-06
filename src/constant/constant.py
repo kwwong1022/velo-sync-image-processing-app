@@ -19,3 +19,5 @@ METRIC_TYPE = {
 }
 
 SUFFIX_MP4 = '.mp4'
+
+PROGRESS_UPDATE_RATE = 1500  # update rate in frame
