@@ -4,6 +4,7 @@ import tempfile
 import gpxpy.gpx
 import cv2 as cv
 import xml.etree.ElementTree as ET
+from src.util.Canvas import Canvas
 from src.constant.constant import S3_STORAGE_BUCKET, SUFFIX_MP4
 from src.lib.common import get_video_process, get_s3_file, put_s3_file
 from src.lib.metric import get_gpx_metric
@@ -38,23 +39,24 @@ def app(event, context):
 
     # Create output video
     fourcc = cv.VideoWriter_fourcc(*'mp4v')
-    fps = input_video.get(cv.CAP_PROP_FPS)
+    vid_fps = input_video.get(cv.CAP_PROP_FPS)
     size = (int(input_video.get(3)), int(input_video.get(4)))  # 3: width, 4: height
     temp_video_file = tempfile.NamedTemporaryFile(suffix=SUFFIX_MP4, delete=True)
-    output_video = cv.VideoWriter(temp_video_file.name, fourcc, fps, size)
+    output_video = cv.VideoWriter(temp_video_file.name, fourcc, vid_fps, size)
 
     frame_count = 0
+    frame_total = int(input_video.get(cv.CAP_PROP_FRAME_COUNT))
+    canvas = Canvas(display_items, gpx_metric, vid_fps, vid_offset)
 
     while(True): 
-        ret, frame = input_video.read() 
+        ret, frame = input_video.read()
 
-        if ret: 
-            cv.putText(frame, 'TEXT ON VIDEO', (50, 50), 
-                cv.FONT_HERSHEY_SIMPLEX, 
-                1, (0, 255, 255), 2, cv.LINE_4)
-                
+        if ret:
+            canvas.draw(frame, frame_count)
+
             output_video.write(frame)
             frame_count += 1
+            print(f"Progress: {int(frame_count/frame_total*100)}%")
         
         else:
             break
@@ -63,7 +65,7 @@ def app(event, context):
     input_video.release()
 
     # Upload output video to s3
-    # put_s3_file(temp_video_file.name, S3_STORAGE_BUCKET, '71c2b411-5ad7-4e24-9fc9-469d8c1d7f97/c7e6d89d-c0f5-4e35-a472-ac44d3bcbb8b.mp4')
+    put_s3_file(temp_video_file.name, S3_STORAGE_BUCKET, '71c2b411-5ad7-4e24-9fc9-469d8c1d7f97/c7e6d89d-c0f5-4e35-a472-ac44d3bcbb8b.mp4')
     temp_video_file.close()
 
     # Health check result
@@ -76,4 +78,4 @@ def app(event, context):
     }
 
 # For localhost test
-app({}, {})
+# app({}, {})
