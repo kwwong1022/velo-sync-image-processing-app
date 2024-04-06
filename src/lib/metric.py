@@ -11,6 +11,7 @@ def get_gpx_metric(gpx_bytes):
                 time = point.time
                 lat = point.latitude
                 long = point.longitude
+                ele = point.elevation
                 atemp = hr = cad = power = 0
 
                 for extension in point.extensions:
@@ -27,8 +28,6 @@ def get_gpx_metric(gpx_bytes):
                         # Handle power data
                         power = extension.text if 'power' in extension.tag else 0
 
-                gpx_metric.append({ 'time':time, 'lat':lat, 'long':long, 'atemp':atemp, 'hr':hr, 'cad':cad, 'power':power })
+                gpx_metric.append({ 'time':time, 'lat':lat, 'long':long, 'ele':ele, 'atemp':atemp, 'hr':hr, 'cad':cad, 'power':power })
 
     return gpx_metric
-
-

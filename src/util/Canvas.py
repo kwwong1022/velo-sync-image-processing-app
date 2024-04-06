@@ -13,7 +13,7 @@ class Canvas:
     def draw(self, frame, frame_count):
         for item in self.display_items:
             metric = item["metric"]
-            frame_in_sec = math.floor(frame_count/self.vid_fps) - self.vid_offset
+            frame_in_sec = math.floor(frame_count/self.vid_fps) - math.floor(self.vid_offset/self.vid_fps)
             
             if metric == METRIC_TYPE["POWER"]:
                 self.draw_power(item, frame, frame_in_sec)
@@ -94,7 +94,7 @@ class Canvas:
         theme = item["theme"]
         posx = item["posx"]
         posy = item["posy"]
-        gradient = "N/A"
+        gradient = self.gpx_metric[frame_in_sec]['ele'] if self.is_metric_range_valid(frame_in_sec) else 0
 
         if theme == 0:
             cv.putText(frame, f"M Climb: {gradient}", (posx, posy), 
